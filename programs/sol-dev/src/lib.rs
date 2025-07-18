@@ -6,15 +6,30 @@ declare_id!("7fN8wFBskQw4z4cQwtQk2ESiLmFjL3Yxw1uK4GVHAN61");
 pub mod sol_dev {
     use super::*;
 
-    pub fn check_balance(ctx: Context<CheckBalance>) -> Result<u64> {
-        let balance = ctx.accounts.target.lamports();
-        msg!("Wallet Balance (lamports): {}", balance);
-        Ok(balance)
+    pub fn initialize(ctx: Context<Initialize>, data: u64) -> Result<()> {
+        let storage = &mut ctx.accounts.my_storage;
+        storage.x = data;
+        Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct CheckBalance<'info> {
-    /// CHECK: This account is only used to read the balance, no validation needed
-    pub target: AccountInfo<'info>,
+pub struct Initialize<'info> {
+    #[account(
+        init,
+        payer = signer,
+        space = 8 + 8,
+        seeds = [],
+        bump
+    )]
+    pub my_storage: Account<'info, MyStorage>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[account]
+pub struct MyStorage {
+    x: u64,
 }
